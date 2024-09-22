@@ -1,0 +1,125 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model NewsletterSignup {
+    id         Int      @id @default(autoincrement())
+    email      String   @unique
+    created_at DateTime @default(now())
+    updated_at DateTime
+}
+
+model customers {
+    id        String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+    name      String @db.VarChar(255)
+    email     String @db.VarChar(255)
+    image_url String @db.VarChar(255)
+}
+
+model invoices {
+    id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+    customer_id String   @db.Uuid
+    amount      Int
+    status      String   @db.VarChar(255)
+    date        DateTime @db.Date
+}
+
+model recipe_categories {
+    id                    Int                     @id @default(autoincrement())
+    category              String                  @db.VarChar(255)
+    active                Boolean                 @default(true)
+    slug                  String?
+    recipes_to_categories recipes_to_categories[]
+}
+
+model recipes {
+    id                    Int                     @id @default(autoincrement())
+    recipe_name           String                  @unique
+    description           String?
+    ingredients           Json?
+    instructions          String?
+    total_time            Int?
+    servings              String?
+    author                String?
+    host                  String?
+    recipe_language       String?
+    nutrition_data        Json?
+    recipe_url            String                  @unique
+    image_url             String?
+    scraped               Boolean                 @default(true)
+    active                Boolean                 @default(true)
+    categorized           Boolean                 @default(false)
+    slug                  String?
+    featured              Boolean                 @default(false)
+    updated_at            DateTime?
+    created_at            DateTime?
+    recipes_to_categories recipes_to_categories[]
+}
+
+model recipes_to_categories {
+    recipe_id         Int
+    category_id       Int
+    recipe_categories recipe_categories @relation(fields: [category_id], references: [id])
+    recipes           recipes           @relation(fields: [recipe_id], references: [id])
+
+    @@id([recipe_id, category_id])
+}
+
+model revenue {
+    month   String @unique @db.VarChar(4)
+    revenue Int
+}
+
+model t3gallery_image {
+    id         Int       @id @default(autoincrement())
+    name       String    @db.VarChar(256)
+    url        String    @db.VarChar(1024)
+    created_at DateTime  @default(now()) @db.Timestamptz(6)
+    updated_at DateTime? @db.Timestamptz(6)
+    user_id    String    @db.VarChar(256)
+
+    @@index([name], map: "name_idx")
+}
+
+model users {
+    id       String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+    name     String @db.VarChar(255)
+    email    String @unique
+    password String
+}
+
+model Newsletter_User {
+    id        String   @id @default(cuid())
+    email     String   @unique
+    name      String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("newsletter_saas_users")
+}
+
+model Newsletter_Newsletter {
+    id        String   @id @default(cuid())
+    title     String
+    content   String
+    status    String   @default("draft")
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("newsletter_saas_newsletters")
+}
+
+model Newsletter_Subscriber {
+    id        String   @id @default(cuid())
+    email     String   @unique
+    name      String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("newsletter_saas_subscribers")
+}
